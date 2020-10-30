@@ -6,14 +6,6 @@ import os
 import sys
 import yagmail
 import csv
-import csv
-
-# with open('testfile.csv', newline='') as csvfile:
-#     data = list(csv.reader(csvfile))
-
-# print(data)
-
-
 
 
 def sendEmail(newPosts):
@@ -23,7 +15,7 @@ def sendEmail(newPosts):
     body = "\n".join(newPosts)
     body = body.strip()
     subject = body.split("\n")[0]
-    body += "\n\n\n Email Sent from Portal Project Developed by Bhaveshkumar Yadav"
+    body += "\n\n\nEmail Sent from Portal Project \n Developed by Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
     try:
         email = os.environ['EMAIL']
     except:
@@ -103,24 +95,26 @@ def saveLastPosts(lastPostIDs):
     csvfile = open('posts.csv','w+')
     csvw = csv.writer(csvfile,delimiter=',')    
     csvw.writerow(lastPostIDs)
+    csvfile.close()
 
 getLastPosts()
-
+print("Running the portal blog sniffer")
 
 while(1):
     urll="http://placements.iitb.ac.in/blog/"
-
+    print(lastPostIDs)
     base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
     req = urllib2.Request(urll)
     authheader =  "Basic %s" % base64string
     req.add_header("Authorization", authheader)
-
+    print("Checking for new posts")
     if(checkIfNewPost(req)>0):
         print("sending emails")
         sendEmail(newPosts)
         saveLastPosts(lastPostIDs)
-        # for posts in newPosts:
-            # print(posts)
+    else:
+        print("NO new posts found")
+    print("Sleeping...")
     time.sleep(300)
 
 
