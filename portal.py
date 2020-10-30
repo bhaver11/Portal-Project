@@ -63,7 +63,7 @@ def checkIfNewPost(req):
     if(newPostCount > 0):
         lastPostIDs = []    
         for post in posts:
-            lastPostIDs.append(post['id'])
+            lastPostIDs.append(str(post['id']))
 
     return newPostCount
 
@@ -115,6 +115,6 @@ while(1):
     else:
         print("NO new posts found")
     print("Sleeping...")
-    time.sleep(300)
+    time.sleep(180)
 
 
