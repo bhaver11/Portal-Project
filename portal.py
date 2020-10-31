@@ -12,10 +12,6 @@ def sendEmail(newPosts):
     csvfile = open('mails.csv')
     receivers = list(csv.reader(csvfile))
     csvfile.close()
-    body = "\n".join(newPosts)
-    body = body.strip()
-    subject = body.split("\n")[0]
-    body += "\n\n\nEmail Sent from Portal Project \n Developed by Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
     try:
         email = os.environ['EMAIL']
     except:
@@ -30,11 +26,15 @@ def sendEmail(newPosts):
         sys.exit(1)
     yag = yagmail.SMTP(email,emailPass)
     print(receivers)
-    yag.send(
-        to=receivers[0],
-        subject=subject,
-        contents=body, 
-    )
+    for newPost in newPosts:
+        body = newPost
+        subject = body.split("\n")[0]
+        body += "\n\n\nEmail Sent from Portal Project \n Developed by Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
+        yag.send(
+            to=receivers[0],
+            subject=subject,
+            contents=body, 
+        )
 
 lastPostIDs = []
 newPosts = []
@@ -55,15 +55,19 @@ def checkIfNewPost(req):
     newPostCount = 0
     newPosts = []
     for post in posts:
-        if(post['id'] in lastPostIDs):
+        postId = post['id'].encode('utf-8')
+        postH = post.text.encode('utf-8').strip().split('\n')[0]
+        if(postId+postH in lastPostIDs):
             pass
         else:
             newPostCount += 1
-            newPosts.append(post.text)
+            newPosts.append(post.text.encode('utf-8').strip())
     if(newPostCount > 0):
         lastPostIDs = []    
         for post in posts:
-            lastPostIDs.append(str(post['id']))
+            postId = post['id'].encode('utf-8')
+            postH = post.text.encode('utf-8').strip().split('\n')[0]
+            lastPostIDs.append(str(postId+postH))
 
     return newPostCount
 
@@ -99,14 +103,13 @@ def saveLastPosts(lastPostIDs):
 
 getLastPosts()
 print("Running the portal blog sniffer")
+urll="http://placements.iitb.ac.in/blog/"
+base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+req = urllib2.Request(urll)
+authheader =  "Basic %s" % base64string
+req.add_header("Authorization", authheader)
 
 while(1):
-    urll="http://placements.iitb.ac.in/blog/"
-    print(lastPostIDs)
-    base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-    req = urllib2.Request(urll)
-    authheader =  "Basic %s" % base64string
-    req.add_header("Authorization", authheader)
     print("Checking for new posts")
     if(checkIfNewPost(req)>0):
         print("sending emails")
