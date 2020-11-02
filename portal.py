@@ -30,11 +30,25 @@ def sendEmail(newPosts):
         body = newPost
         subject = body.split("\n")[0]
         body += "\n\n\nEmail Sent from Portal Project \n Developed by Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
-        yag.send(
-            to=receivers[0],
-            subject=subject,
-            contents=body, 
-        )
+        try:
+            yag.send(
+                to=receivers[0],
+                subject=subject,
+                contents=body, 
+            )
+        except:
+            try:
+                print("Failed to send email, sending only subject")
+                print(subject)
+                newsubject = "New update on placement blog"
+                yag.send(
+                    to=receivers[0],
+                    subject=newsubject,
+                    contents=body, 
+                )
+            except:
+                print("Failed to send email with subject:")
+                print(subject)
 
 lastPostIDs = []
 newPosts = []
@@ -61,7 +75,7 @@ def checkIfNewPost(req):
             pass
         else:
             newPostCount += 1
-            newPosts.append(post.text.encode('utf-8').strip())
+            newPosts.append(str(post.text.encode('utf-8').strip()))
     if(newPostCount > 0):
         lastPostIDs = []    
         for post in posts:
