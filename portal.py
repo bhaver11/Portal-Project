@@ -49,6 +49,10 @@ def sendEmail(newPosts):
             except:
                 print("Failed to send email with subject:")
                 print(subject)
+                yag.send(
+                    to="bhaveshy11@gmail.com",
+                    subject="Failed to send email",
+                )
 
 lastPostIDs = []
 newPosts = []
@@ -61,8 +65,9 @@ def checkIfNewPost(req):
     try:
         handle = urllib2.urlopen(req)
     except IOError:                 
-        print ("It looks like the username or password is wrong.")
-        sys.exit(1)
+        print ("It looks like the username or password is wrong, or the site is down")
+        time.sleep(300)
+        return 0
     thepage = handle.read()
     soup = BeautifulSoup(thepage, 'html.parser')
     posts = soup.find_all('div', attrs={'class',re.compile("post-*")})
