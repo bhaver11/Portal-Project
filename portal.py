@@ -28,7 +28,8 @@ def sendEmail(newPosts):
     print(receivers)
     for newPost in newPosts:
         body = newPost
-        subject = body.split("\n")[0]
+        subject = str(body.text.encode('utf-8').strip().split('\n')[0])
+        body = str(body)
         body += "\n\n\nEmail Sent from Portal Project \n Developed by Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
         try:
             yag.send(
