@@ -80,7 +80,7 @@ def checkIfNewPost(req):
             pass
         else:
             newPostCount += 1
-            newPosts.append(str(post.text.encode('utf-8').strip()))
+            newPosts.append(post)
     if(newPostCount > 0):
         lastPostIDs = []    
         for post in posts:
