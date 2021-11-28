@@ -1,4 +1,4 @@
-import urllib2, base64
+import urllib, base64
 from bs4 import BeautifulSoup
 import re
 import time
@@ -28,9 +28,11 @@ def sendEmail(newPosts):
     print(receivers)
     for newPost in newPosts:
         body = newPost
-        subject = str(body.text.encode('utf-8').strip().split('\n')[0])
+        subject = body.find('h3',attrs={'class','entry-title'}).text
+        # subject = str(body.text.strip().split('\n')[0])
         body = str(body)
-        body += "\n\n\nEmail Sent from Portal Project \n More info at : https://github.com/bhaver11/Portal-Project"
+        body = re.sub(r'\n\s*\n', '\n\n', body)
+        body += "\n\n\nEmail Sent from Portal Project \n Author: Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
         try:
             yag.send(
                 to=receivers[0],
@@ -64,20 +66,24 @@ def checkIfNewPost(req):
     global newPostCount
     global newPosts
     try:
-        handle = urllib2.urlopen(req)
-    except IOError:                 
-        print ("It looks like the username or password is wrong, or the site is down")
+        handle = urllib.request.urlopen(req)
+    except urllib.error.URLError as e:                 
+        print("Error")
+        print(e)
         time.sleep(300)
         return 0
     thepage = handle.read()
     soup = BeautifulSoup(thepage, 'html.parser')
-    posts = soup.find_all('div', attrs={'class',re.compile("post-*")})
+    posts = soup.find_all('article', attrs={'class',re.compile("post-*")})
+    # print(posts)
     newPostCount = 0
     newPosts = []
     for post in posts:
-        postId = post['id'].encode('utf-8')
-        postH = post.text.encode('utf-8').strip().split('\n')[0]
-        if(postId+postH in lastPostIDs):
+        postId = post['id']
+        postH = post.find('h3',attrs={'class','entry-title'}).text
+        # postH = post.text.strip().split('\n')[0]
+        print(postH)
+        if(str(postId+postH) in lastPostIDs):
             pass
         else:
             newPostCount += 1
@@ -85,8 +91,8 @@ def checkIfNewPost(req):
     if(newPostCount > 0):
         lastPostIDs = []    
         for post in posts:
-            postId = post['id'].encode('utf-8')
-            postH = post.text.encode('utf-8').strip().split('\n')[0]
+            postId = post['id']
+            postH = post.find('h3',attrs={'class','entry-title'}).text
             lastPostIDs.append(str(postId+postH))
 
     return newPostCount
@@ -123,11 +129,35 @@ def saveLastPosts(lastPostIDs):
 
 getLastPosts()
 print("Running the portal blog sniffer")
-urll="http://placements.iitb.ac.in/blog/"
-base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-req = urllib2.Request(urll)
-authheader =  "Basic %s" % base64string
-req.add_header("Authorization", authheader)
+urll="https://campus.placements.iitb.ac.in/blog/placement"
+# data_string = username+":"+password
+# data_bytes = data_string.encode("utf-8")
+# base64string = base64.b64encode(data_bytes)
+# authheader =  "Basic %s" % base64string
+# print(authheader)
+
+# authheader =  "Basic %s" % base64string
+# req.add_header("Authorization", authheader)
+# create a password manager
+password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+
+# Add the username and password.
+# If we knew the realm, we could use it instead of None.
+top_level_url = urll
+password_mgr.add_password(None, top_level_url, username, password)
+
+handler = urllib.request.HTTPBasicAuthHandler(password_mgr)
+
+# create "opener" (OpenerDirector instance)
+opener = urllib.request.build_opener(handler)
+
+# use the opener to fetch a URL
+opener.open(urll)
+
+# Install the opener.
+# Now all calls to urllib.request.urlopen use our opener.
+urllib.request.install_opener(opener)
+req = urllib.request.Request(urll)
 
 while(1):
     print("Checking for new posts")
@@ -136,7 +166,7 @@ while(1):
         sendEmail(newPosts)
         saveLastPosts(lastPostIDs)
     else:
-        print("NO new posts found")
+        print("No new posts found")
     print("Sleeping...")
     time.sleep(180)
 
