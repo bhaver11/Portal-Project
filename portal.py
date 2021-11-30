@@ -6,7 +6,7 @@ import os
 import sys
 import yagmail
 import csv
-
+telegram_link = "https://api.telegram.org/bot2142186621:AAFLB4RbzVr_nyiPZyg3sIJegf_vA_wfzDQ/sendMessage?chat_id=-1001427363031&text="
 
 def sendEmail(newPosts):
     csvfile = open('mails.csv')
@@ -30,9 +30,18 @@ def sendEmail(newPosts):
         body = newPost
         subject = body.find('h3',attrs={'class','entry-title'}).text
         # subject = str(body.text.strip().split('\n')[0])
+        telegram_txt = body.text
         body = str(body)
         body = re.sub(r'\n\s*\n', '\n\n', body)
         body += "\n\n\nEmail Sent from Portal Project \n Author: Bhaveshkumar Yadav \n More info at : https://github.com/bhaver11/Portal-Project"
+        
+        telegram_msg_link = telegram_link + urllib.parse.quote(telegram_txt)
+        
+        try: 
+            urllib.request.urlopen(telegram_msg_link) #send to telegram
+        except urllib.error.URLError as e:
+            print("Error")
+            print(e)
         try:
             yag.send(
                 to=receivers[0],
